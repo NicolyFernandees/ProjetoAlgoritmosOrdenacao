@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// ==============================================================================
+// FERRAMENTAS DO DETETIVE
+// ==============================================================================
+
+// Ferramenta para trocar dois brinquedos de lugar [cite: 477, 478]
+void trocar(int *x, int *y) {
+    int aux = *x;
+    *x = *y;
+    *y = aux;
+}
+
+// Ferramenta para mostrar os brinquedos na tela
+void mostrar_brinquedos(int A[], int tamanho, char* nome_da_missao) {
+    printf("%s: ", nome_da_missao);
+    for(int i = 0; i < tamanho; i++) {
+        printf("%d ", A[i]);
+    }
+    printf("\n");
+}
+
+// ==============================================================================
+// MISSÃO 1: OS JOGOS DE ARRUMAR (ORDENAÇÃO) 
+// ==============================================================================
+
+// 1. Bubble Sort: O brinquedo maior flutua para o final [cite: 836, 838, 839, 840, 841]
+void bubble_sort(int A[], int n) {
+    for(int i = 1; i <= n; i++) {
+        for(int j = 1; j < n; j++) {
+            if(A[j-1] > A[j]) {
+                trocar(&A[j-1], &A[j]);
+            }
+        }
+    }
+}
+
+// 2. Selection Sort: Procura o menor e coloca no começo [cite: 1462, 1464, 1466, 1468]
+void selection_sort(int A[], int n) {
+    for(int i = 0; i < n - 1; i++) {
+        int posmenor = i;
+        for(int j = i + 1; j < n; j++) {
+            if(A[j] < A[posmenor]) {
+                posmenor = j;
+            }
+        }
+        if(posmenor != i) {
+            trocar(&A[posmenor], &A[i]);
+        }
+    }
+}
+
+// 3. Insertion Sort: Pega um de cada vez e insere no lugar certo [cite: 1439, 1440, 1443, 1445, 1449]
+void insertion_sort(int A[], int n) {
+    int chave, i;
+    for(int j = 1; j < n; j++) {
+        chave = A[j];
+        i = j - 1;
+        while(i > -1 && A[i] > chave) {
+            A[i+1] = A[i];
+            i--;
+        }
+        A[i+1] = chave;
+    }
+}
+
+// 4. Merge Sort (A Mágica da Divisão)
+// Parte A: Junta as metades [cite: 1518, 1519, 1520, 1528]
+void merge(int A[], int p, int q, int r) {
+    int n1 = q - p + 1;
+    int n2 = r - q;
+    int L[n1], R[n2];
+    
+    for(int i = 0; i < n1; i++) L[i] = A[p + i];
+    for(int i = 0; i < n2; i++) R[i] = A[q + i + 1];
+    
+    int i = 0, j = 0;
+    for(int k = p; k <= r; k++) {
+        if(i < n1 && (j >= n2 || L[i] <= R[j])) {
+            A[k] = L[i];
+            i++;
+        } else {
+            A[k] = R[j];
+            j++;
+        }
+    }
+}
+// Parte B: Corta no meio [cite: 1500, 1501, 1502, 1503, 1504, 1505]
+void merge_sort(int A[], int p, int r) {
+    if(p < r) {
+        int q = (p + r) / 2;
+        merge_sort(A, p, q);
+        merge_sort(A, q + 1, r);
+        merge(A, p, q, r);
+    }
+}
+
+// 5. Quick Sort (O Capitão Pivô)
+// Parte A: Arruma em volta do Capitão [cite: 1226, 1228, 1230, 1234, 1235, 1236]
+int partition(int A[], int p, int r) {
+    int pivo = A[r];
+    int i = p - 1;
+    for(int j = p; j < r; j++) {
+        if(A[j] <= pivo) {
+            i++;
+            trocar(&A[i], &A[j]);
+        }
+    }
+    trocar(&A[i + 1], &A[r]);
+    return i + 1;
+}
+// Parte B: Chama a missão [cite: 1207, 1209, 1211, 1213]
+void quick_sort(int A[], int p, int r) {
+    if(p < r) {
+        int q = partition(A, p, r);
+        quick_sort(A, p, q - 1);
+        quick_sort(A, q + 1, r);
+    }
+}
+
+// ==============================================================================
+// MISSÃO 2: A ÁRVORE MÁGICA DE BUSCA (ESTRUTURA DE DADOS)
+// ==============================================================================
+
+// Como é o galho da nossa árvore
+struct NoArvore {
+    int brinquedo;
+    struct NoArvore* esquerda; // Menores vêm pra cá
+    struct NoArvore* direita;  // Maiores vêm pra cá
+};
+
+// Semente para criar um galho novo
+struct NoArvore* plantar_galho(int valor) {
+    struct NoArvore* novo = (struct NoArvore*)malloc(sizeof(struct NoArvore));
+    novo->brinquedo = valor;
+    novo->esquerda = NULL;
+    novo->direita = NULL;
+    return novo;
+}
+
+// Colocando o brinquedo na árvore
+struct NoArvore* inserir_na_arvore(struct NoArvore* raiz, int valor) {
+    if (raiz == NULL) return plantar_galho(valor); // Achou um buraco vazio!
+    
+    if (valor < raiz->brinquedo) {
+        raiz->esquerda = inserir_na_arvore(raiz->esquerda, valor);
+    } else if (valor > raiz->brinquedo) {
+        raiz->direita = inserir_na_arvore(raiz->direita, valor);
+    }
+    return raiz;
+}
+
+// O jogo de achar rápido na árvore!
+void buscar_na_arvore(struct NoArvore* raiz, int procurado) {
+    if (raiz == NULL) {
+        printf(" -> Puxa, nao achei o brinquedo %d na arvore.\n", procurado);
+        return;
+    }
+    if (raiz->brinquedo == procurado) {
+        printf(" -> OBA! Achei o brinquedo %d pendurado na arvore!\n", procurado);
+        return;
+    }
+    // O truque: decidir para qual lado ir!
+    if (procurado < raiz->brinquedo) {
+        buscar_na_arvore(raiz->esquerda, procurado);
+    } else {
+        buscar_na_arvore(raiz->direita, procurado);
+    }
+}
+
+// ==============================================================================
+// PARQUINHO PRINCIPAL: ONDE TUDO ACONTECE
+// ==============================================================================
+
+int main() {
+    printf("====== INICIANDO MISSAO DETETIVE ======\n\n");
+
+    // --- TESTANDO A ORDENACAO ---
+    int bagunca1[] = {42, 7, 15, 3, 99};
+    int bagunca2[] = {42, 7, 15, 3, 99};
+    int bagunca3[] = {42, 7, 15, 3, 99};
+    int bagunca4[] = {42, 7, 15, 3, 99};
+    int bagunca5[] = {42, 7, 15, 3, 99};
+    int tamanho = 5;
+
+    printf("--- TESTANDO JOGOS DE ARRUMAR ---\n");
+    mostrar_brinquedos(bagunca1, tamanho, "Como estava antes");
+    
+    bubble_sort(bagunca1, tamanho);
+    mostrar_brinquedos(bagunca1, tamanho, "Depois do Bubble Sort");
+
+    selection_sort(bagunca2, tamanho);
+    mostrar_brinquedos(bagunca2, tamanho, "Depois do Selection Sort");
+
+    insertion_sort(bagunca3, tamanho);
+    mostrar_brinquedos(bagunca3, tamanho, "Depois do Insertion Sort");
+
+    merge_sort(bagunca4, 0, tamanho - 1); // Passamos o inicio (0) e o fim (4) [cite: 888, 890, 896]
+    mostrar_brinquedos(bagunca4, tamanho, "Depois do Merge Sort");
+
+    quick_sort(bagunca5, 0, tamanho - 1);
+    mostrar_brinquedos(bagunca5, tamanho, "Depois do Quick Sort");
+
+
+    // --- TESTANDO A ARVORE BINARIA ---
+    printf("\n--- TESTANDO A ARVORE MAGICA ---\n");
+    struct NoArvore* minha_arvore = NULL;
+    minha_arvore = inserir_na_arvore(minha_arvore, 50); // A raiz da árvore
+    inserir_na_arvore(minha_arvore, 30); // Vai pra esquerda
+    inserir_na_arvore(minha_arvore, 70); // Vai pra direita
+    inserir_na_arvore(minha_arvore, 20); // Esquerda da esquerda
+    
+    buscar_na_arvore(minha_arvore, 70);
+    buscar_na_arvore(minha_arvore, 99); // Esse nao existe lá!
+
+
+    // --- TESTANDO O MAPA (GRAFO) ---
+    printf("\n--- TESTANDO O MAPA DE AMIGOS (GRAFOS) ---\n");
+    // 0: Ana, 1: Bruno, 2: Carlos, 3: Dani
+    // 1 significa amizade!
+    int matriz_amigos[4][4] = {
+        {0, 1, 0, 1}, // Ana é amiga do Bruno e da Dani
+        {1, 0, 1, 0}, // Bruno é amigo da Ana e do Carlos
+        {0, 1, 0, 0}, // Carlos só é amigo do Bruno
+        {1, 0, 0, 0}  // Dani só é amiga da Ana
+    };
+
+    printf("Verificando os arquivos do detetive...\n");
+    if(matriz_amigos[1][2] == 1) {
+        printf(" -> Confirmado: A crianca 1 (Bruno) eh amiga da crianca 2 (Carlos)!\n");
+    }
+    if(matriz_amigos[2][3] == 0) {
+        printf(" -> Confirmado: A crianca 2 (Carlos) ainda NAO conhece a crianca 3 (Dani).\n");
+    }
+
+    printf("\n====== MISSAO CONCLUIDA! ======\n");
+    return 0;
+}
